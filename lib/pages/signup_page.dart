@@ -1,36 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../api.dart';
-import '../app_state.dart';
-import 'home_page.dart';
-import 'signup_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignupPageState extends State<SignupPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
 
-  void _login() async {
+  void _signup() async {
     setState(() {
       _errorMessage = '';
     });
     try {
-      final token = await Api.login(_emailController.text, _passwordController.text);
+      await Api.signup(_emailController.text, _passwordController.text);
       if (!mounted) return;
-      Provider.of<AppState>(context, listen: false).login(token);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('회원가입 성공! 로그인해 주세요.')),
       );
     } catch (e) {
       setState(() {
-        _errorMessage = '로그인 실패: $e';
+        _errorMessage = '회원가입 실패: $e';
       });
     }
   }
@@ -39,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Grin Mind 로그인'),
+        title: const Text('회원가입'),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -48,13 +44,8 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Image.asset(
-                'assets/images/earth.png',
-                height: 150,
-              ),
-              const SizedBox(height: 32),
               Text(
-                '환경을 위한 작은 실천, Grin Mind와 함께해요!',
+                '새로운 계정을 만들어 Grin Mind와 함께하세요!',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Theme.of(context).primaryColor,
@@ -90,17 +81,15 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ElevatedButton(
-                onPressed: _login,
-                child: const Text('로그인'),
+                onPressed: _signup,
+                child: const Text('회원가입'),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const SignupPage()),
-                  );
+                  Navigator.of(context).pop();
                 },
-                child: const Text('아직 회원이 아니신가요? 회원가입'),
+                child: const Text('이미 계정이 있으신가요? 로그인'),
               ),
             ],
           ),

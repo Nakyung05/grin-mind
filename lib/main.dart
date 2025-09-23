@@ -1,87 +1,69 @@
-// main.dart 파일
-
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:grin_mind/pages/login_page.dart';
-import 'package:grin_mind/app_state.dart'; 
-import 'package:grin_mind/pages/leaderboard_page.dart';
-import 'package:grin_mind/pages/actions_page.dart';
-
-// 주간 데이터를 관리하는 Provider
-class WeeklyData with ChangeNotifier {
-  List<String> weeklyTasks = [];
-
-  void resetWeeklyTasks() {
-    weeklyTasks.clear();
-    notifyListeners();
-  }
-}
+import 'app_state.dart';
+import 'pages/home_page.dart';
+import 'pages/login_page.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => WeeklyData()),
-        ChangeNotifierProvider(create: (_) => AppState()),
-      ],
-      child: const MyApp(),
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: const MainApp(),
     ),
   );
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAndResetWeeklyData();
-  }
-
-  Future<void> _checkAndResetWeeklyData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastResetTimestamp = prefs.getInt('lastResetTimestamp') ?? 0;
-    final lastResetDate = DateTime.fromMillisecondsSinceEpoch(lastResetTimestamp);
-    final now = DateTime.now();
-
-    if (!mounted) {
-      return;
-    }
-
-    if (now.weekday == DateTime.monday && now.day != lastResetDate.day) {
-      Provider.of<WeeklyData>(context, listen: false).resetWeeklyTasks();
-      await prefs.setInt('lastResetTimestamp', now.millisecondsSinceEpoch);
-    }
-  }
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Grin Mind',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6BBA74),
-          primary: const Color(0xFF6BBA74),
-          secondary: const Color(0xFFC7EBC6),
-          onPrimary: Colors.white,
-          onSecondary: Colors.black,
+        primarySwatch: Colors.green,
+        hintColor: Colors.greenAccent,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
         ),
-        useMaterial3: true,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.green,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.green),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.green, width: 2),
+          ),
+          labelStyle: const TextStyle(color: Colors.green),
+        ),
       ),
-      home: const LoginPage(),
-      // **이 부분을 추가하세요**
-      routes: {
-        '/leaderboard': (context) => const LeaderboardPage(),
-        '/actions': (context) => const ActionsPage(),
-      },
+      home: Consumer<AppState>(
+        builder: (context, appState, child) {
+          if (appState.isAuthenticated) {
+            return const HomePage();
+          } else {
+            return const LoginPage();
+          }
+        },
+      ),
     );
   }
 }
