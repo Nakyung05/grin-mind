@@ -1,18 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "pubspec.yaml",
-      "use": "@napi-rs/vercel-flutter",
-      "config": {
-        "webBuildCommand": "flutter build web --release --base-href=\"/\""
-      }
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "index.html"
     }
-  ]
+  ],
+  "buildCommand": "flutter build web --release",
+  "outputDirectory": "build/web"
 }
