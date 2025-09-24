@@ -1,108 +1,90 @@
+// login_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../api.dart';
 import '../app_state.dart';
-import 'home_page.dart';
-import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  String _errorMessage = '';
+  final emailCtrl = TextEditingController();
+  final passCtrl = TextEditingController();
+  bool isLoginMode = true;
+  bool loading = false;
+  String? error;
 
-  void _login() async {
-    setState(() {
-      _errorMessage = '';
-    });
+  Future<void> _submit() async {
+    setState(() { loading = true; error = null; });
+    final app = context.read<AppState>();
     try {
-      final token = await Api.login(_emailController.text, _passwordController.text);
-      if (!mounted) return;
-      Provider.of<AppState>(context, listen: false).login(token);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      if (isLoginMode) {
+        await app.login(emailCtrl.text.trim(), passCtrl.text.trim());
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/leaderboard');
+      } else {
+        await app.signup(emailCtrl.text.trim(), passCtrl.text.trim());
+        if (!mounted) return;
+        setState(() { isLoginMode = true; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('회원가입 완료! 로그인 해주세요.')),
+        );
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = '로그인 실패: $e';
-      });
+      String errorMessage = e.toString();
+      if (errorMessage.contains('email')) {
+        errorMessage = errorMessage.replaceAll('email', 'id');
+      }
+      setState(() { error = errorMessage; });
+    } finally {
+      if (mounted) setState(() { loading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grin Mind 로그인'),
-      ),
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Image.asset(
-                'assets/images/earth.png',
-                height: 150,
-              ),
-              const SizedBox(height: 32),
-              Text(
-                '환경을 위한 작은 실천, Grin Mind와 함께해요!',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Card(
+            margin: const EdgeInsets.all(24),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                // 로고와 앱 이름 추가
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 30,
+                      height: 30,
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Grin Mind', style: Theme.of(context).textTheme.headlineSmall),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: '이메일',
-                  prefixIcon: Icon(Icons.email),
+                const SizedBox(height: 16),
+                TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: '아이디')),
+                const SizedBox(height: 8),
+                TextField(controller: passCtrl, decoration: const InputDecoration(labelText: '비밀번호'), obscureText: true),
+                const SizedBox(height: 12),
+                if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: loading ? null : _submit,
+                  child: Text(loading ? '처리중...' : (isLoginMode ? '로그인' : '회원가입')),
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: '비밀번호',
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              if (_errorMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    _errorMessage,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red, fontSize: 14),
-                  ),
-                ),
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('로그인'),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const SignupPage()),
-                  );
-                },
-                child: const Text('아직 회원이 아니신가요? 회원가입'),
-              ),
-            ],
+                TextButton(
+                  onPressed: () => setState(() => isLoginMode = !isLoginMode),
+                  child: Text(isLoginMode ? '회원가입으로' : '로그인으로'),
+                )
+              ]),
+            ),
           ),
         ),
       ),

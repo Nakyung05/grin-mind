@@ -1,50 +1,29 @@
 import 'package:flutter/material.dart';
-import '../models.dart';
 
 class CounterRow extends StatelessWidget {
-  final ActionItem action;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
+  final String title;
+  final int count;
+  final VoidCallback onMinus;
+  final VoidCallback onPlus;
 
   const CounterRow({
     super.key,
-    required this.action,
-    required this.onIncrement,
-    required this.onDecrement,
+    required this.title,
+    required this.count,
+    required this.onMinus,
+    required this.onPlus,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ListTile(
+      title: Text(title),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Text(
-              action.name,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove),
-                onPressed: onDecrement,
-              ),
-              Text(
-                '${action.count}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: onIncrement,
-              ),
-            ],
-          ),
+          IconButton(onPressed: onMinus, icon: const Icon(Icons.remove_circle_outline)),
+          Text('$count', style: const TextStyle(fontWeight: FontWeight.bold)),
+          IconButton(onPressed: onPlus, icon: const Icon(Icons.add_circle_outline)),
         ],
       ),
     );
