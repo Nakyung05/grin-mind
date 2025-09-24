@@ -1,9 +1,12 @@
+// lib/api.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Api {
-  static const String baseUrl = 'http://127.0.0.1:5000';
+  // baseUrl을 Vercel 서버 URL로 변경했습니다.
+  static const String baseUrl = 'https://grin-mind-qzaredfl8-nakyung05s-projects.vercel.app';
 
   static Future<void> saveToken(String token) async {
     final sp = await SharedPreferences.getInstance();
@@ -55,6 +58,3 @@ class Api {
     throw Exception('${res.statusCode} $map');
   }
 }
-
-// lib/api.dart
-const String BASE_URL = 'https://grin-mind-qzaredfl8-nakyung05s-projects.vercel.app';
